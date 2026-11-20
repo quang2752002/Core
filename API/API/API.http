@@ -1,0 +1,47 @@
+@API_HostAddress = http://localhost:5082
+@token = REPLACE_WITH_LOGIN_ACCESS_TOKEN
+@categoryId = 1
+
+GET {{API_HostAddress}}/api/weatherforecast/
+Authorization: Bearer {{token}}
+Accept: application/json
+
+###
+
+POST {{API_HostAddress}}/api/auth/login
+Content-Type: application/json
+
+{ "userName": "admin", "password": "ChangeMe123!" }
+
+###
+
+POST {{API_HostAddress}}/api/categories
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{ "name": "Electronics", "description": "Electronic products" }
+
+###
+
+GET {{API_HostAddress}}/api/categories?page=1&pageSize=20
+Authorization: Bearer {{token}}
+
+###
+
+GET {{API_HostAddress}}/api/categories/{{categoryId}}
+Authorization: Bearer {{token}}
+
+###
+
+PUT {{API_HostAddress}}/api/categories/{{categoryId}}
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{ "name": "Updated category", "description": null }
+
+###
+
+DELETE {{API_HostAddress}}/api/categories/{{categoryId}}
+Authorization: Bearer {{token}}
+
+###

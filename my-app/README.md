@@ -1,36 +1,53 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Core Workspace frontend
 
-## Getting Started
+Next.js App Router + TypeScript + Axios, connected to the ASP.NET Core API in `../API`. The Vietnamese interface includes sign-in, session restoration, logout, paginated categories, create/edit forms, delete confirmation, and permission-based actions.
 
-First, run the development server:
+## Run locally
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+Start the backend from the repository root in one terminal:
+
+```powershell
+dotnet run --project API\API\API.csproj --launch-profile http
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Start the frontend in another terminal:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```powershell
+cd my-app
+npm install
+npm run dev
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Open [Core Workspace](http://localhost:3000). `/` opens `/categories`; users without a session are directed to `/login`.
 
-## Learn More
+The default backend address is `http://localhost:5082/api`. To change it, copy `.env.example` to `.env.local`, set `API_BASE_URL`, and restart Next.js. This server environment variable must point to an address reachable from the Next.js server. Use the HTTP launch profile locally, or configure a trusted HTTPS certificate; certificate validation is kept enabled.
 
-To learn more about Next.js, take a look at the following resources:
+Sample backend accounts:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- `admin` / `ChangeMe123!`: read, create, edit, and delete categories.
+- `user` / `ChangeMe123!`: read categories only.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+These are the backend development accounts. Categories are persisted by the backend in SQLite. The frontend does not seed or mock data. The illustration on the sign-in page is decorative.
 
-## Deploy on Vercel
+## Structure and integration
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- `lib/http.ts`: shared browser Axios instance, timeout, error formatting, and expired-session interceptor.
+- `features/auth`: typed auth service, context provider, and sign-in UI.
+- `features/categories`: typed Axios service, paginated workspace, create/edit dialog, and delete confirmation.
+- `components/layout`: workspace navigation and account controls.
+- `app/api/[...path]/route.ts`: restricted Next.js proxy for auth/category endpoints; server-side Axios forwards requests to .NET.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+The browser calls same-origin Next.js routes using Axios. Login stores the backend JWT in an HttpOnly, SameSite=Lax cookie; only account details are returned to browser JavaScript. The proxy attaches the bearer token when calling .NET. This arrangement does not require backend CORS configuration.
+
+Cookies expire with the JWT. A backend 401 clears the cookie and requests sign-in; there is no refresh-token endpoint in the current backend. Logout clears the browser cookie. The backend validates JWTs and enforces permissions; hiding buttons is an interface convenience. Mutations reject a different browser Origin, and session responses use `no-store`.
+
+The list uses the backend page/pageSize parameters with 10 records per page. Since the API does not return a total, Next is enabled when the current page is full; the last next page can be empty. No global count is fabricated.
+
+## Build
+
+```powershell
+npm run build
+npm start
+```
+
+Production requires a running Next.js server and a reachable backend configured through `API_BASE_URL`. Use HTTPS in production for Secure session cookies. The interface uses native CSS and system fonts so builds do not download fonts.

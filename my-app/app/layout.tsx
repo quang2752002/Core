@@ -1,15 +1,16 @@
 import type { Metadata } from "next";
+import { AuthProvider } from "@/features/auth/auth-provider";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Core — Feature-based Next.js starter",
-  description: "A scalable Next.js project foundation.",
+  title: "Core Workspace · Quản lý danh mục",
+  description: "Không gian quản lý danh mục với quyền truy cập theo vai trò.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en">
-      <body>{children}</body>
+    <html lang="vi">
+      <body><AuthProvider>{children}</AuthProvider></body>
     </html>
   );
 }
